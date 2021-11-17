@@ -1,32 +1,38 @@
 <script>
-import { onDestroy, onMount, text } from "svelte/internal";
-import RangeSlider from "svelte-range-slider-pips";
-import { timer } from 'rxjs';
-import { createGQLWSClient, createSubscription } from "$lib/graphql-ws";
-import TopTicks from "../../components/TopTicks.svelte";
+	import { onDestroy, onMount, text } from 'svelte/internal';
+	import RangeSlider from 'svelte-range-slider-pips';
+	import { timer } from 'rxjs';
+	import { createGQLWSClient, createMutation, createSubscription } from '$lib/graphql-ws';
+	import TopTicks from '../../components/TopTicks.svelte';
 
-let runningTicks = false;
-let focusGroupName = "pepsi commercial";
-let userName = "ekolu";
-let sliderValues = [50]; // default
-let tickLog = "";
+	let runningTicks = false;
+	let focusGroupName = 'pepsi commercial';
+	let userName = 'ekolu';
+	let sliderValues = [50]; // default
+	let tickLog = '';
 
-let timerObservable;
-let timerSub;
+	let timerObservable;
+	let timerSub;
 
-let gqlwsClient;
-let gqlwsObservable;
+	let gqlwsClient;
+	let gqlwsObservable;
+	let gqlwsObservableUnsubscribe;
+	let gqlwsObservableUnsubscribeCallback = (unsubscribe) => {
+		console.log('gqlwsObservableUnsubscribeCallback ');
+		console.log('returning unsubscribe: ', unsubscribe);
+		gqlwsObservableUnsubscribe = unsubscribe;
+	};
 
-// browser-only code
-onMount(async () => {
-    // setup the client in the index.svelte onMount() handler
-    gqlwsClient = createGQLWSClient(import.meta.env.VITE_HASURA_GRAPHQL_URL);
+	// browser-only code
+	onMount(async () => {
+		// setup the client in the index.svelte onMount() handler
+		gqlwsClient = createGQLWSClient(import.meta.env.VITE_HASURA_GRAPHQL_URL);
 
-    // execute createSubscription() in the onMount() handler 
-    
-    // and bind to a new grid/table component
-    // src/components/TopTicks.svelte
-    const gql = `subscription MySubscription($limit:Int) {
+		// execute createSubscription() in the onMount() handler
+
+		// and bind to a new grid/table component
+		// src/components/TopTicks.svelte
+		const gql = `subscription MySubscription($limit:Int) {
   ratingtick(order_by: {id: desc}, limit: $limit) {
     id
     focusgroup
@@ -35,66 +41,94 @@ onMount(async () => {
     tick_ts
   }
 }`;
-    const variables = {"limit": 5}; // how many to display
-    gqlwsObservable = createSubscription(gqlwsClient, gql, variables);
+		const variables = { limit: 5 }; // how many to display
+		gqlwsObservable = createSubscription(
+			gqlwsClient,
+			gql,
+			variables,
+			gqlwsObservableUnsubscribeCallback
+		);
+		console.log('gqlwsObservable: ', gqlwsObservable);
+	});
 
+	// release memory
+	onDestroy(() => {
+		if (gqlwsObservableUnsubscribe) {
+			console.log('calling gqlwsObservableUnsubscribe()');
+			gqlwsObservableUnsubscribe();
+		}
+	});
 
-});
+	function timerStart() {
+		runningTicks = true;
+		timerObservable = timer(1000, 1000);
 
-// release memory
-onDestroy(() => {
-    // if (subscription) {
-    //     subscription.unsubscribe();
-    // }
-});
+		timerSub = timerObservable.subscribe((val) => {
+			tickLog += `tick ${val}... `;
 
-function timerStart() {
-    runningTicks = true;
-    timerObservable = timer(1000, 1000);
+			// execute createMutation() on every tick with the current values
+			submitLatestRatingTick(gqlwsClient);
+		});
+	}
 
-    timerSub = timerObservable.subscribe(val => {
-        tickLog += `tick ${val}... `;
+	function timerStop() {
+		timerSub.unsubscribe();
+		runningTicks = false;
+	}
 
-        // execute createMutation() on every tick with the current values
-
-    });
+	function submitLatestRatingTick(client) {
+		const gql = `mutation MyMutation($focusgroup:String, $username:String, $rating:Int) {
+  insert_ratingtick_one(object: {focusgroup: $focusgroup, username: $username, 
+    rating: $rating}) {
+    id
+  }
 }
+`;
+		const variables = buildRatingTick();
 
-function timerStop() {
-    timerSub.unsubscribe();
-    runningTicks = false;
-}
+		createMutation(client, gql, variables);
+	}
 
+	function buildRatingTick() {
+		return {
+			focusgroup: focusGroupName,
+			username: userName,
+			rating: sliderValues[0]
+		};
+	}
 </script>
 
 <h1>Slider</h1>
-<p>
-    enter your focus group, name and click 'start'. 
-</p>
-<p>
-    Once it starts, move the slider depending on how much you 
-    agree/disagree with the video. 
-</p>
+<p>enter your focus group, name and click 'start'.</p>
+<p>Once it starts, move the slider depending on how much you agree/disagree with the video.</p>
 
 <form>
-<label for="focusgroup">focus group: </label><input type="text" name="focusgroup" bind:value={focusGroupName} />
-<label for="username">username: </label><input type="text" name="focusgroup" bind:value={userName} />
+	<label for="focusgroup">focus group: </label><input
+		type="text"
+		name="focusgroup"
+		bind:value={focusGroupName}
+	/>
+	<label for="username">username: </label><input
+		type="text"
+		name="focusgroup"
+		bind:value={userName}
+	/>
 
-<label for="ratingslider">rating slider (0 to 100): </label>
+	<label for="ratingslider">rating slider (0 to 100): </label>
 
-<RangeSlider name="ratingslider" min={0} max={100} bind:values={sliderValues} pips all='label' />
-<div>0 = bad/disagree, 50 = neutral, 100 = good/agree</div>
-<div>slider Value: {sliderValues[0]}</div>
+	<RangeSlider name="ratingslider" min={0} max={100} bind:values={sliderValues} pips all="label" />
+	<div>0 = bad/disagree, 50 = neutral, 100 = good/agree</div>
+	<div>slider Value: {sliderValues[0]}</div>
 
-<button disabled={runningTicks} on:click|preventDefault={timerStart}>Start</button>
-<button disabled={!runningTicks} on:click|preventDefault={timerStop}>Stop</button>
+	<button disabled={runningTicks} on:click|preventDefault={timerStart}>Start</button>
+	<button disabled={!runningTicks} on:click|preventDefault={timerStop}>Stop</button>
 </form>
 <div>
-    Tick output: {tickLog}
+	Tick output: {tickLog}
 </div>
 
 <TopTicks observable={gqlwsObservable} />
 
 <div>
-    <a href="/">Home</a>
+	<a href="/">Home</a>
 </div>

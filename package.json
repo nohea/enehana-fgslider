@@ -17,6 +17,7 @@
   },
   "type": "module",
   "dependencies": {
+    "graphql-ws": "^5.5.5",
     "rxjs": "^7.4.0"
   }
 }

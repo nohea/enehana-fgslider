@@ -1,7 +1,9 @@
 <script>
-import { text } from "svelte/internal";
+import { onDestroy, onMount, text } from "svelte/internal";
 import RangeSlider from "svelte-range-slider-pips";
 import { timer } from 'rxjs';
+import { createGQLWSClient, createSubscription } from "$lib/graphql-ws";
+import TopTicks from "../../components/TopTicks.svelte";
 
 let runningTicks = false;
 let focusGroupName = "pepsi commercial";
@@ -12,12 +14,49 @@ let tickLog = "";
 let timerObservable;
 let timerSub;
 
+let gqlwsClient;
+let gqlwsObservable;
+
+// browser-only code
+onMount(async () => {
+    // setup the client in the index.svelte onMount() handler
+    gqlwsClient = createGQLWSClient(import.meta.env.VITE_HASURA_GRAPHQL_URL);
+
+    // execute createSubscription() in the onMount() handler 
+    
+    // and bind to a new grid/table component
+    // src/components/TopTicks.svelte
+    const gql = `subscription MySubscription($limit:Int) {
+  ratingtick(order_by: {id: desc}, limit: $limit) {
+    id
+    focusgroup
+    username
+    rating
+    tick_ts
+  }
+}`;
+    const variables = {"limit": 5}; // how many to display
+    gqlwsObservable = createSubscription(gqlwsClient, gql, variables);
+
+
+});
+
+// release memory
+onDestroy(() => {
+    // if (subscription) {
+    //     subscription.unsubscribe();
+    // }
+});
+
 function timerStart() {
     runningTicks = true;
     timerObservable = timer(1000, 1000);
 
     timerSub = timerObservable.subscribe(val => {
         tickLog += `tick ${val}... `;
+
+        // execute createMutation() on every tick with the current values
+
     });
 }
 
@@ -53,6 +92,8 @@ function timerStop() {
 <div>
     Tick output: {tickLog}
 </div>
+
+<TopTicks observable={gqlwsObservable} />
 
 <div>
     <a href="/">Home</a>

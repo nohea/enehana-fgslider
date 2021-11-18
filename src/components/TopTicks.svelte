@@ -1,7 +1,7 @@
 <script>
-    export let subscription;
+    export let observable;
 </script>
-{#if $subscription}
+{#if $observable}
 <h3>Top Ticks</h3>
 <table>
     <thead>
@@ -14,7 +14,7 @@
         </tr>
     </thead>
     <tbody>
-        {#each $subscription.data.ratingtick as item}
+        {#each $observable.data.ratingtick as item}
         <tr>
             <td>{item.id}</td>
             <td>{item.focusgroup}</td>

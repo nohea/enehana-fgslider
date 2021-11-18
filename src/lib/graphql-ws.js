@@ -1,6 +1,6 @@
 
 import { createClient } from 'graphql-ws';
-import { Observable } from 'rxjs';
+import { observable, Observable } from 'rxjs';
 
 export function createGQLWSClient(url) {
     // console.log(`createGQLWSClient(${url})`);
@@ -39,7 +39,9 @@ export function createSubscription(client, gql, variables) {
         query: gql,
         variables: variables,
     };
-    return toObservable(client, operation);
+    const rxjsobservable = toObservable(client, operation);
+    console.log("rxjsobservable: ", rxjsobservable);
+    return rxjsobservable;
 }
 
 // wrap up the graphql-ws subscription in an observable
@@ -47,12 +49,19 @@ function toObservable(client, operation) {
     // console.log("toObservable()");
     // the graphql-ws subscription may be cleaned up here, 
     // not sure about the RxJs Observable
-    return new Observable((observer) => {
+    // trying to make it more like the docs, w/custom unsubscribe() on subscription object
+    // https://rxjs.dev/guide/observable
+    return new Observable(function subscribe(subscriber) {
         client.subscribe(operation, {
-            next: (data) => observer.next(data),
-            error: (err) => observer.error(err),
-            complete: () => observer.complete() // unsubscribe?
+            next: (data) => subscriber.next(data),
+            error: (err) => subscriber.error(err),
+            complete: () => subscriber.complete()
         });
+
+        // Provide a way of canceling and disposing resources
+        return function unsubscribe() {
+            console.log("unsubscribe()");
+        };
     });
 }
 

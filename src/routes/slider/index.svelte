@@ -15,13 +15,7 @@
 	let timerSub;
 
 	let gqlwsClient;
-	let gqlwsObservable;
-	let gqlwsObservableUnsubscribe;
-	let gqlwsObservableUnsubscribeCallback = (unsubscribe) => {
-		console.log('gqlwsObservableUnsubscribeCallback ');
-		console.log('returning unsubscribe: ', unsubscribe);
-		gqlwsObservableUnsubscribe = unsubscribe;
-	};
+	let gqlwsSubscription;
 
 	// browser-only code
 	onMount(async () => {
@@ -41,22 +35,19 @@
     tick_ts
   }
 }`;
-		const variables = { limit: 5 }; // how many to display
-		gqlwsObservable = createSubscription(
+		const variables = { limit: 10 }; // how many to display
+		const subscription = createSubscription(
 			gqlwsClient,
 			gql,
-			variables,
-			gqlwsObservableUnsubscribeCallback
+			variables
 		);
-		console.log('gqlwsObservable: ', gqlwsObservable);
+		// console.log('subscription: ', subscription);
+		gqlwsSubscription = subscription;
 	});
 
 	// release memory
 	onDestroy(() => {
-		if (gqlwsObservableUnsubscribe) {
-			console.log('calling gqlwsObservableUnsubscribe()');
-			gqlwsObservableUnsubscribe();
-		}
+
 	});
 
 	function timerStart() {
@@ -127,7 +118,7 @@
 	Tick output: {tickLog}
 </div>
 
-<TopTicks observable={gqlwsObservable} />
+<TopTicks subscription={gqlwsSubscription} />
 
 <div>
 	<a href="/">Home</a>

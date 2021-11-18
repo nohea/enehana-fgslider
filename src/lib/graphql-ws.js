@@ -32,26 +32,27 @@ export async function createMutation(client, gql, variables) {
     return createQuery(client, gql, variables);
 }
 
-export function createSubscription(client, gql, variables, unsubcb) {
-    // subscription
+export function createSubscription(client, gql, variables) {
+    // hasura subscription
     // console.log("createSubscription()");
     const operation = {
         query: gql,
         variables: variables,
     };
-    return toObservable(client, operation, unsubcb);
+    return toObservable(client, operation);
 }
 
 // wrap up the graphql-ws subscription in an observable
-function toObservable(client, operation, unsubcb) {
+function toObservable(client, operation) {
     // console.log("toObservable()");
+    // the graphql-ws subscription may be cleaned up here, 
+    // not sure about the RxJs Observable
     return new Observable((observer) => {
-        const unsubscribe = client.subscribe(operation, {
+        client.subscribe(operation, {
             next: (data) => observer.next(data),
             error: (err) => observer.error(err),
             complete: () => observer.complete() // unsubscribe?
         });
-        unsubcb(unsubscribe); // return back to top level caller
     });
 }
 

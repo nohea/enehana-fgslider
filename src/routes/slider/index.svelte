@@ -94,6 +94,18 @@
 			rating: sliderValues[0]
 		};
 	}
+
+	function removeExcessRecords(client) {
+		const gql = `mutation DeleteRatingTicksMutation {
+  delete_ratingtick(where: {id: {_gt: 10}}) {
+    affected_rows
+  }
+}`;
+		const variables = {};
+
+		createMutation(gqlwsClient, gql, variables);
+	}
+
 </script>
 
 <h1>Slider</h1>
@@ -126,6 +138,8 @@
 </div>
 
 <TopTicks observable={gqlwsObservable} />
+
+<button on:click|preventDefault={removeExcessRecords}>Delete most records</button>
 
 <div>
 	<a href="/">Home</a>

@@ -40,7 +40,7 @@ export function createSubscription(client, gql, variables) {
         variables: variables,
     };
     const rxjsobservable = toObservable(client, operation);
-    console.log("rxjsobservable: ", rxjsobservable);
+    // console.log("rxjsobservable: ", rxjsobservable);
     return rxjsobservable;
 }
 

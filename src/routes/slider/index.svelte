@@ -36,7 +36,7 @@
     tick_ts
   }
 }`;
-		const variables = { limit: 10 }; // how many to display
+		const variables = { limit: 5 }; // how many to display
 		const rxjsobservable = createSubscription(
 			gqlwsClient,
 			gql,

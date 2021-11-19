@@ -18,7 +18,9 @@
   "type": "module",
   "dependencies": {
     "@sveltejs/adapter-vercel": "^1.0.0-next.31",
+    "dotenv": "^10.0.0",
     "graphql-ws": "^5.5.5",
-    "rxjs": "^7.4.0"
+    "rxjs": "^7.4.0",
+    "ws": "^8.2.3"
   }
 }

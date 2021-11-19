@@ -21,6 +21,7 @@
 	// browser-only code
 	onMount(async () => {
 		// setup the client in the index.svelte onMount() handler
+
 		gqlwsClient = createGQLWSClient(import.meta.env.VITE_HASURA_GRAPHQL_URL);
 
 		// execute createSubscription() in the onMount() handler
@@ -37,6 +38,7 @@
   }
 }`;
 		const variables = { limit: 5 }; // how many to display
+
 		const rxjsobservable = createSubscription(
 			gqlwsClient,
 			gql,
@@ -140,6 +142,10 @@
 <TopTicks observable={gqlwsObservable} />
 
 <button on:click|preventDefault={removeExcessRecords}>Delete most records</button>
+
+<form action="/api/cleanup.json" method="post">
+	<input type="submit" value="Delete most records via POST" />
+</form>
 
 <div>
 	<a href="/">Home</a>

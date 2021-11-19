@@ -2,11 +2,18 @@
 import { createClient } from 'graphql-ws';
 import { observable, Observable } from 'rxjs';
 
-export function createGQLWSClient(url) {
+export function createGQLWSClient(url, ws) {
     // console.log(`createGQLWSClient(${url})`);
-    return createClient({
+
+    const options = {
         url: url,
-    });
+    };
+    // add ws impl if ssr
+    if(ws) {
+        options['webSocketImpl'] = ws;
+    }
+
+    return createClient(options);
 }
 
 export async function createQuery(client, gql, variables) {
@@ -20,7 +27,7 @@ export async function createQuery(client, gql, variables) {
             },
             {
                 next: (data) => (result = data),
-                error: reject,
+                error: (err) => reject,
                 complete: () => resolve(result)
             }
         );

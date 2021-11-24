@@ -10,6 +10,7 @@
 	let userName = 'ekolu';
 	let sliderValues = [50]; // default
 	let tickLog = '';
+	let msgError = "";
 
 	let timerObservable;
 	let timerSub;
@@ -23,6 +24,7 @@
 		// setup the client in the index.svelte onMount() handler
 
 		gqlwsClient = createGQLWSClient(import.meta.env.VITE_HASURA_GRAPHQL_URL);
+		console.log("gqlwsClient: ", gqlwsClient);
 
 		// execute createSubscription() in the onMount() handler
 
@@ -44,12 +46,23 @@
 			gql,
 			variables
 		);
-		// const subscription = rxjsobservable.subscribe(subscriber => {
-		// 	console.log('subscriber: ', subscriber);
-		// });
-		// console.log('subscription: ', subscription);
+
+		console.log("rxjsobservable: ", rxjsobservable);
+
+		const subscription = rxjsobservable.subscribe({
+			next: (v) => console.log('subscriber: ', v),
+			error: (e) => {
+				msgError = `error connecting to ${e.originalTarget.url}`;
+				console.log('Subscription Error', e);
+			},
+			complete: () => console.info('complete') 
+		});
+		console.log('subscription: ', subscription);
+
 		// gqlwsSubscriptions.push(subscription);
 		gqlwsObservable = rxjsobservable;
+
+
 	});
 
 	// release memory
@@ -111,6 +124,11 @@
 </script>
 
 <h1>Slider</h1>
+
+{#if msgError}
+<div style="background-color:lightcoral">{msgError}</div>
+{/if}
+
 <p>enter your focus group, name and click 'start'.</p>
 <p>Once it starts, move the slider depending on how much you agree/disagree with the video.</p>
 

@@ -1,6 +1,7 @@
 <script>
     export let observable;
 </script>
+
 {#if $observable}
 <h3>Top Ticks</h3>
 <table>

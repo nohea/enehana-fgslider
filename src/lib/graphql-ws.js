@@ -3,7 +3,7 @@ import { createClient } from 'graphql-ws';
 import { observable, Observable } from 'rxjs';
 
 export function createGQLWSClient(url, ws) {
-    // console.log(`createGQLWSClient(${url})`);
+    console.log(`createGQLWSClient(${url})`);
 
     const options = {
         url: url,

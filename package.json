@@ -2,6 +2,7 @@
   "name": "enehana-fgslider",
   "version": "0.0.1",
   "scripts": {
+    "test": "./node_modules/.bin/uvu tests",
     "dev": "svelte-kit dev",
     "build": "svelte-kit build",
     "preview": "svelte-kit preview",
@@ -13,7 +14,8 @@
     "prettier": "^2.4.1",
     "prettier-plugin-svelte": "^2.4.0",
     "svelte": "^3.42.6",
-    "svelte-range-slider-pips": "^2.0.0"
+    "svelte-range-slider-pips": "^2.0.0",
+    "uvu": "^0.5.2"
   },
   "type": "module",
   "dependencies": {

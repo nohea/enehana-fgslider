@@ -36,16 +36,14 @@ ts('ratingtick insert pass', async () => {
 
     let resultData = {};
 
-    await bo.insert(ratingTick).then((data) => {
+    await bo.insert(ratingTick)
+    .then((data) => {
         console.log("data 1: ", data);
         resultData = {...data};
     })
-    .catch((err) => { throw err }) // test fail
     .then(() => {
-
         console.log("resultData: 2", resultData);
         assert.ok(resultData.data.insert_ratingtick_one.id);
-
     });
 
 });
@@ -64,15 +62,19 @@ ts('ratingtick insert FAIL validator', async () => {
     let resultData = {};
 
     // bo insert should fail
-    assert.throws(async () => {
-        await bo.insert(ratingTick).then((data) => {
-            console.log("data 1: ", data);
-            resultData = {...data};
-        })
-        .catch((err) => { throw err }); // test fail
+    // https://github.com/lukeed/uvu/issues/35#issuecomment-896270152
+    try {
+        await bo.insert(ratingTick);
+        // await bo.throw(ratingTick);
+        assert.unreachable('should have thrown');
+    }
+    catch (err) {
+        console.log("err handler triggers as expected: ", err);
+        assert.instance(err, Error);
+        // assert.match(err.message, 'focusgroup is a required field');
+    }
 
-    });
-
+    console.log("assert.unreachable for throws ended");
 });
 
 ts.run();

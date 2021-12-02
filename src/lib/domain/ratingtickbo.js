@@ -1,22 +1,17 @@
 
+import { RatingTickValidator } from '../../lib/validators/index.js';
 import { createMutation, createSubscription } from '../../lib/graphql-ws.js';
 
 export class RatingTickBO {
-    // let gqlwsClient;
-    // let gqlwsObservable;
-    // let gqlwsSubscriptions = [];
 
     constructor(options) {
         this.config = {};
+        this.validator = RatingTickValidator;
 
-        console.log("options: ", options);
+        // console.log("options: ", options);
         if(options.client) {
-            console.log("assigning private options");
             // this.config = [...options];
             this.config.client = options.client;
-        }
-        else {
-            console.log("no options");
         }
 
         if(this.config && this.config.client) {
@@ -39,7 +34,23 @@ export class RatingTickBO {
           `;
         const variables = record;
 
+        await this.validator.validate(record)
+        .then((valid) => {
+            console.log("validation passed: ", valid);
+        })
+        .catch(async function (err) {
+            // err.name; // => 'ValidationError'
+            // err.errors; // => [{ key: 'field_too_short', values: { min: 18 } }]
+            console.log("validate catch: ", err);
+            throw new Error(err);
+        });
+
         return createMutation(this.gqlwsClient, gql, variables);
+    }
+
+    async throw(record) {
+        console.log("test throw err");
+        throw new Error("test throw err");
     }
 
     update(record) {

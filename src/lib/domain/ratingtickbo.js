@@ -28,7 +28,7 @@ export class RatingTickBO {
         }
     }
 
-    insert(record) {
+    async insert(record) {
 
         const gql = `mutation MyMutation($focusgroup:String, $username:String, $rating:Int) {
             insert_ratingtick_one(object: {focusgroup: $focusgroup, username: $username, 

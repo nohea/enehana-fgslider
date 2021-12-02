@@ -1,27 +1,32 @@
-import { test } from 'uvu';
+import { test, suite } from 'uvu';
 import * as assert from 'uvu/assert';
 import { RatingTickBO } from '../../src/lib/domain/ratingtickbo.js';
 import { testconfig } from '../testconfig.js';
 import { createGQLWSClient } from '../../src/lib/graphql-ws.js';
 import WebSocket from 'ws';
 
-// test('ratingtick insert fail', () => {
-//     const bo = new RatingTickBO();
+const ts = suite('crud'); // test suite
 
-//     const result = bo.insert();
+let gqlwsClient;
 
-//     assert.is(false, result);
-// });
+ts.before(async () => {
+    gqlwsClient = await createGQLWSClient(testconfig.VITE_HASURA_GRAPHQL_URL, WebSocket);
+});
+ts.before.each(async () => {});
+ts.after.each(async () => {});
+ts.after(async () => {});
 
-test('ratingtick insert pass', () => {
+test('ratingtick insert fail', () => {
+    const bo = new RatingTickBO();
 
-    const gqlwsClient = createGQLWSClient(testconfig.VITE_HASURA_GRAPHQL_URL, WebSocket);
+    const result = bo.insert();
 
-    let options = {
-        client: gqlwsClient,
-    };
+    assert.is(false, result);
+});
 
-    const bo = new RatingTickBO(options);
+ts('ratingtick insert pass', async () => {
+
+    const bo = new RatingTickBO({ client: gqlwsClient });
 
     const ratingTick = {
         focusgroup: "quad",
@@ -31,16 +36,43 @@ test('ratingtick insert pass', () => {
 
     let resultData = {};
 
-    bo.insert(ratingTick).then((data) => {
-        console.log("data: ", data);
+    await bo.insert(ratingTick).then((data) => {
+        console.log("data 1: ", data);
         resultData = {...data};
+    })
+    .catch((err) => { throw err }) // test fail
+    .then(() => {
+
+        console.log("resultData: 2", resultData);
+        assert.ok(resultData.data.insert_ratingtick_one.id);
+
     });
 
-    console.log("resultData: ", resultData);
-    assert.ok(resultData.data.insert_ratingtick_one.id);
-    assert.is.not({}, resultData);
-
-    // TODO fix out of order async
 });
 
-test.run();
+ts('ratingtick insert FAIL validator', async () => {
+
+    const bo = new RatingTickBO({ client: gqlwsClient });
+
+    // missing required prop
+    const ratingTick = {
+        focusgroup: "", 
+        username: "joey",
+        rating: '34',
+    };
+
+    let resultData = {};
+
+    // bo insert should fail
+    assert.throws(async () => {
+        await bo.insert(ratingTick).then((data) => {
+            console.log("data 1: ", data);
+            resultData = {...data};
+        })
+        .catch((err) => { throw err }); // test fail
+
+    });
+
+});
+
+ts.run();

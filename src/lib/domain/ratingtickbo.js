@@ -45,7 +45,7 @@ export class RatingTickBO {
             throw new Error(err);
         });
 
-        return createMutation(this.gqlwsClient, gql, variables);
+        return await createMutation(this.gqlwsClient, gql, variables);
     }
 
     async throw(record) {

@@ -71,7 +71,7 @@ ts('ratingtick insert FAIL validator', async () => {
     catch (err) {
         console.log("err handler triggers as expected: ", err);
         assert.instance(err, Error);
-        // assert.match(err.message, 'focusgroup is a required field');
+        assert.match(err.message, 'focusgroup is a required field');
     }
 
     console.log("assert.unreachable for throws ended");

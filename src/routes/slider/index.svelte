@@ -4,11 +4,11 @@
 	import { timer } from 'rxjs';
 	import { createGQLWSClient, createMutation, createSubscription } from '$lib/graphql-ws';
 	import TopTicks from '../../components/TopTicks.svelte';
-import { RatingTickBO } from '$lib/domain/ratingtickbo';
+	import { RatingTickBO } from '$lib/domain/ratingtickbo';
 
 	let runningTicks = false;
-	let focusGroupName = 'pepsi commercial';
-	let userName = 'ekolu';
+	let focusGroupName = '';
+	let userName = '';
 	let sliderValues = [50]; // default
 	let tickLog = '';
 	let msgError = "";
@@ -84,6 +84,7 @@ import { RatingTickBO } from '$lib/domain/ratingtickbo';
 
 		timerSub = timerObservable.subscribe(async (val) => {
 			tickLog += `tick ${val}... `;
+			msgError = "";
 
 			// execute createMutation() on every tick with the current values
 			// submitLatestRatingTick(gqlwsClient);

@@ -4,6 +4,7 @@
 	import { timer } from 'rxjs';
 	import { createGQLWSClient, createMutation, createSubscription } from '$lib/graphql-ws';
 	import TopTicks from '../../components/TopTicks.svelte';
+import { RatingTickBO } from '$lib/domain/ratingtickbo';
 
 	let runningTicks = false;
 	let focusGroupName = 'pepsi commercial';
@@ -19,12 +20,17 @@
 	let gqlwsObservable;
 	let gqlwsSubscriptions = [];
 
+	let rtbo;
+
 	// browser-only code
 	onMount(async () => {
 		// setup the client in the index.svelte onMount() handler
 
 		gqlwsClient = createGQLWSClient(import.meta.env.VITE_HASURA_GRAPHQL_URL);
 		console.log("gqlwsClient: ", gqlwsClient);
+
+		// use business object to mutate
+		rtbo = new RatingTickBO({ client: gqlwsClient });
 
 		// execute createSubscription() in the onMount() handler
 
@@ -76,11 +82,19 @@
 		runningTicks = true;
 		timerObservable = timer(1000, 1000);
 
-		timerSub = timerObservable.subscribe((val) => {
+		timerSub = timerObservable.subscribe(async (val) => {
 			tickLog += `tick ${val}... `;
 
 			// execute createMutation() on every tick with the current values
-			submitLatestRatingTick(gqlwsClient);
+			// submitLatestRatingTick(gqlwsClient);
+			const rt = buildRatingTick();
+			try {
+				await rtbo.insert(rt);
+			}
+			catch(err) {
+				console.log(`data insert error: ${err}`);
+				msgError = `data insert error: ${err}`;
+			}
 		});
 	}
 
@@ -89,18 +103,18 @@
 		runningTicks = false;
 	}
 
-	function submitLatestRatingTick(client) {
-		const gql = `mutation MyMutation($focusgroup:String, $username:String, $rating:Int) {
-  insert_ratingtick_one(object: {focusgroup: $focusgroup, username: $username, 
-    rating: $rating}) {
-    id
-  }
-}
-`;
-		const variables = buildRatingTick();
+// 	function submitLatestRatingTick(client) {
+// 		const gql = `mutation MyMutation($focusgroup:String, $username:String, $rating:Int) {
+//   insert_ratingtick_one(object: {focusgroup: $focusgroup, username: $username, 
+//     rating: $rating}) {
+//     id
+//   }
+// }
+// `;
+// 		const variables = buildRatingTick();
 
-		createMutation(client, gql, variables);
-	}
+// 		createMutation(client, gql, variables);
+// 	}
 
 	function buildRatingTick() {
 		return {

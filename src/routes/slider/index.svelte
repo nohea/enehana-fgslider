@@ -90,7 +90,8 @@
 			// submitLatestRatingTick(gqlwsClient);
 			const rt = buildRatingTick();
 			try {
-				await rtbo.insert(rt);
+				const rv = await rtbo.insert(rt);
+				console.log({ rv });
 			}
 			catch(err) {
 				console.log(`data insert error: ${err}`);

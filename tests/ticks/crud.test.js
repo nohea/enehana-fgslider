@@ -34,17 +34,9 @@ ts('ratingtick insert pass', async () => {
         rating: '34',
     };
 
-    let resultData = {};
-
-    await bo.insert(ratingTick)
-    .then((data) => {
-        console.log("data 1: ", data);
-        resultData = {...data};
-    })
-    .then(() => {
-        console.log("resultData: 2", resultData);
-        assert.ok(resultData.data.insert_ratingtick_one.id);
-    });
+    const resultData = await bo.insert(ratingTick);
+    console.log("resultData: ", resultData);
+    assert.ok(resultData.data.insert_ratingtick_one.id);
 
 });
 

@@ -4,6 +4,8 @@
 	import { timer } from 'rxjs';
 	import { createGQLWSClient, createMutation, createSubscription } from '$lib/graphql-ws';
 	import TopTicks from '../../components/TopTicks.svelte';
+	import { env } from '$env/dynamic/public';
+	import { writable } from 'svelte/store';
 
 	let runningTicks = false;
 	let focusGroupName = 'pepsi commercial';
@@ -15,41 +17,48 @@
 	let timerSub;
 
 	let gqlwsClient;
-	let gqlwsObservable;
+	let gqlwsObservable = writable('');
 	let gqlwsSubscriptions = [];
+
+	let message = '';
 
 	// browser-only code
 	onMount(async () => {
+		console.log("onMount()");
 		// setup the client in the index.svelte onMount() handler
 
-		gqlwsClient = createGQLWSClient(import.meta.env.VITE_HASURA_GRAPHQL_URL);
+		try {
+			console.log("env.PUBLIC_HASURA_GRAPHQL_URL ", env.PUBLIC_HASURA_GRAPHQL_URL);
+			gqlwsClient = createGQLWSClient(env.PUBLIC_HASURA_GRAPHQL_URL);
 
-		// execute createSubscription() in the onMount() handler
+			// execute createSubscription() in the onMount() handler
 
-		// and bind to a new grid/table component
-		// src/components/TopTicks.svelte
-		const gql = `subscription MySubscription($limit:Int) {
-  ratingtick(order_by: {id: desc}, limit: $limit) {
-    id
-    focusgroup
-    username
-    rating
-    tick_ts
-  }
-}`;
-		const variables = { limit: 5 }; // how many to display
+			// and bind to a new grid/table component
+			// src/components/TopTicks.svelte
+			const gql = `subscription MySubscription($limit:Int) {
+				ratingtick(order_by: {id: desc}, limit: $limit) {
+					id
+					focusgroup
+					username
+					rating
+					tick_ts
+				}
+			}`;
+			const variables = { limit: 5 }; // how many to display
 
-		const rxjsobservable = createSubscription(
-			gqlwsClient,
-			gql,
-			variables
-		);
-		// const subscription = rxjsobservable.subscribe(subscriber => {
-		// 	console.log('subscriber: ', subscriber);
-		// });
-		// console.log('subscription: ', subscription);
-		// gqlwsSubscriptions.push(subscription);
-		gqlwsObservable = rxjsobservable;
+			const rxjsobservable = createSubscription(
+				gqlwsClient,
+				gql,
+				variables
+			);
+			console.log("rxjsobservable ", rxjsobservable);
+			gqlwsObservable = rxjsobservable;
+
+		}
+		catch(err) {
+			console.log("catch", err);
+			message = JSON.stringify(err);
+		}
 	});
 
 	// release memory
@@ -139,6 +148,10 @@
 	Tick output: {tickLog}
 </div>
 
+{#if message}
+<div style="color:red">{message}</div>
+{/if}
+
 <TopTicks observable={gqlwsObservable} />
 
 <button on:click|preventDefault={removeExcessRecords}>Delete most records</button>
@@ -150,3 +163,5 @@
 <div>
 	<a href="/">Home</a>
 </div>
+
+<div>env.PUBLIC_HASURA_GRAPHQL_URL {env.PUBLIC_HASURA_GRAPHQL_URL}</div>

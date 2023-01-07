@@ -1,5 +1,5 @@
 <script>
-    let TEST = import.meta.env.VITE_TEST;
+import { env } from '$env/dynamic/public';
 </script>
 
 <h1>Focus Group Slider</h1>
@@ -9,4 +9,4 @@
 </li>
 </ul>
 
-<div>{TEST}</div>
+<div>{env.PUBLIC_TEST}</div>

@@ -59,7 +59,7 @@ function toObservable(client, operation) {
     // trying to make it more like the docs, w/custom unsubscribe() on subscription object
     // https://rxjs.dev/guide/observable
     return new Observable(function subscribe(subscriber) {
-        client.subscribe(operation, {
+        const unsub= client.subscribe(operation, {
             next: (data) => subscriber.next(data),
             error: (err) => subscriber.error(err),
             complete: () => subscriber.complete()
@@ -67,6 +67,7 @@ function toObservable(client, operation) {
 
         // Provide a way of canceling and disposing resources
         return function unsubscribe() {
+            unsub();
             console.log("unsubscribe()");
         };
     });

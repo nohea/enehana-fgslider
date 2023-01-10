@@ -63,6 +63,10 @@
 
 	// release memory
 	onDestroy(() => {
+		console.log("onDestroy()");
+		if(runningTicks) {
+			timerStop();
+		}
 		gqlwsSubscriptions.forEach(s => {
 			s.unsubscribe();
 		});
@@ -86,6 +90,7 @@
 	}
 
 	function submitLatestRatingTick(client) {
+		console.log("submitLatestRatingTick()");
 		const gql = `mutation MyMutation($focusgroup:String, $username:String, $rating:Int) {
   insert_ratingtick_one(object: {focusgroup: $focusgroup, username: $username, 
     rating: $rating}) {
@@ -95,7 +100,13 @@
 `;
 		const variables = buildRatingTick();
 
-		createMutation(client, gql, variables);
+		try {
+			createMutation(client, gql, variables);
+		}
+		catch(err) {
+			console.log("createMutation catch", err);
+			message = JSON.stringify(err);
+		}
 	}
 
 	function buildRatingTick() {
@@ -156,7 +167,7 @@
 
 <button on:click|preventDefault={removeExcessRecords}>Delete most records</button>
 
-<form action="/api/cleanup.json" method="post">
+<form action="/api/cleanup" method="post">
 	<input type="submit" value="Delete most records via POST" />
 </form>
 

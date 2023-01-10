@@ -3,7 +3,7 @@ import { createClient } from 'graphql-ws';
 import { observable, Observable } from 'rxjs';
 
 export function createGQLWSClient(url, ws) {
-    // console.log(`createGQLWSClient(${url})`);
+    console.log(`createGQLWSClient(${url})`);
 
     const options = {
         url: url,
@@ -17,6 +17,7 @@ export function createGQLWSClient(url, ws) {
 }
 
 export async function createQuery(client, gql, variables) {
+    console.log("createQuery()", gql, variables);
     // query
     return await new Promise((resolve, reject) => {
         let result;
@@ -41,7 +42,7 @@ export async function createMutation(client, gql, variables) {
 
 export function createSubscription(client, gql, variables) {
     // hasura subscription
-    // console.log("createSubscription()");
+    console.log("createSubscription()");
     const operation = {
         query: gql,
         variables: variables,
@@ -53,13 +54,14 @@ export function createSubscription(client, gql, variables) {
 
 // wrap up the graphql-ws subscription in an observable
 function toObservable(client, operation) {
-    // console.log("toObservable()");
+    console.log("toObservable()");
     // the graphql-ws subscription may be cleaned up here, 
     // not sure about the RxJs Observable
     // trying to make it more like the docs, w/custom unsubscribe() on subscription object
     // https://rxjs.dev/guide/observable
     return new Observable(function subscribe(subscriber) {
-        const unsub= client.subscribe(operation, {
+        console.log("subscribe()");
+        const unsub = client.subscribe(operation, {
             next: (data) => subscriber.next(data),
             error: (err) => subscriber.error(err),
             complete: () => subscriber.complete()
@@ -67,8 +69,8 @@ function toObservable(client, operation) {
 
         // Provide a way of canceling and disposing resources
         return function unsubscribe() {
+            console.log("unsubscribe() the graphql-ws client");
             unsub();
-            console.log("unsubscribe()");
         };
     });
 }

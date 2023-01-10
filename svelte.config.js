@@ -1,15 +1,10 @@
 /** @type {import('@sveltejs/kit').Config} */
 
-import vercel from '@sveltejs/adapter-vercel';
+import adapter from '@sveltejs/adapter-auto';
 
 const config = {
 	kit: {
-		// hydrate the <div id="svelte"> element in src/app.html
-		target: '#svelte',
-        vite: {
-            // other vite config
-        },
-        adapter: vercel()
+        adapter: adapter()
 	}
 };
 

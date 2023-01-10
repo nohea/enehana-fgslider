@@ -1,32 +1,32 @@
+import { json } from '@sveltejs/kit';
 import dotenv from 'dotenv';
 import { createGQLWSClient, createMutation } from '$lib/graphql-ws';
 import WebSocket from 'ws';
+import { PRIVATE_SSR_HASURA_GRAPHQL_URL } from '$env/static/private';
 
 dotenv.config();
 
 /** @type {import('@sveltejs/kit').RequestHandler} */
-export async function get({ params }) {
+export async function GET({ params }) {
 
-	return {
-		body: {
+	return json({
             test: "ok",
-		}
-	};
+	});
 }
 
 /** @type {import('@sveltejs/kit').RequestHandler} */
-export async function post({ params }) {
+export async function POST({ params }) {
 	// const { slug } = params;
 
 	let result = await removeExcessRecords();
 
-	return {
-		body: result
-	};
+	// throw new Error("@migration task: Migrate this return statement (https://github.com/sveltejs/kit/discussions/5774#discussioncomment-3292701)");
+	// Suggestion (check for correctness before using):
+	return json(result);
 }
 
 async function removeExcessRecords() {
-	const gqlwsClientUrl = process.env["SSR_HASURA_GRAPHQL_URL"] || "-";
+	const gqlwsClientUrl = PRIVATE_SSR_HASURA_GRAPHQL_URL || "-";
 	console.log("gqlwsClientUrl: ", gqlwsClientUrl);
     const gqlwsClient = createGQLWSClient(gqlwsClientUrl, WebSocket);
 
